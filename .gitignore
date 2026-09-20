@@ -1,0 +1,21 @@
+# API 키와 환경변수
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Node.js 사용 시 생성
+node_modules/
+
+# Cloudflare 작업파일
+.wrangler/
+
+# 빌드 결과
+dist/
+
+# 운영체제 임시파일
+.DS_Store
+Thumbs.db
+
+# 로그파일
+*.log

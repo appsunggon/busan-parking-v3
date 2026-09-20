@@ -438,3 +438,15 @@ closeRealtimeButton.addEventListener(
 
 // 처음에는 1페이지 표시
 loadParkingList(1);
+
+
+// PWA 서비스 워커 등록
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .catch((error) => {
+        console.error("서비스 워커 등록 실패:", error);
+      });
+  });
+}

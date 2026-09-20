@@ -131,6 +131,7 @@ function getItems(body) {
 function closeRealtimePanel() {
   realtimeRequestId += 1;
   realtimePanel.hidden = true;
+  realtimePanel.style.display = "none";
 }
 
 
@@ -335,6 +336,7 @@ async function loadRealtimeInformation(
   button.textContent = "조회 중";
 
   realtimePanel.hidden = false;
+  realtimePanel.style.removeProperty("display");
 
   realtimeName.textContent =
     `${parkingName} 실시간 정보`;

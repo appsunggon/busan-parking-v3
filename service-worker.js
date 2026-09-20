@@ -1,10 +1,10 @@
-const CACHE_NAME = "busan-parking-v2";
+const CACHE_NAME = "busan-parking-v3";
 
 const APP_SHELL = [
   "/",
   "/index.html",
   "/style.css",
-  "/app.js",
+  "/app.js?v=3",
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png"

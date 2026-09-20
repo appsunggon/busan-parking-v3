@@ -37,7 +37,7 @@ async function loadParkingList() {
       const row = document.createElement("tr");
 
       const codeCell = document.createElement("td");
-      codeCell.textContent = parking.parkngcd;
+      codeCell.textContent = parking.parkngcd || "-";
 
       const nameCell = document.createElement("td");
       nameCell.textContent = parking.parknm;

@@ -58,6 +58,7 @@
             <tr>
               <th>주차장 코드</th>
               <th>주차장명</th>
+              <th>실시간 정보</th>
             </tr>
           </thead>
 
@@ -66,6 +67,47 @@
           </tbody>
         </table>
       </div>
+
+      <section
+        id="realtime-panel"
+        class="realtime-panel"
+        hidden
+      >
+        <div class="realtime-header">
+          <h3 id="realtime-name">
+            실시간 주차정보
+          </h3>
+
+          <button
+            id="close-realtime-button"
+            type="button"
+            aria-label="실시간 정보 닫기"
+          >
+            닫기
+          </button>
+        </div>
+
+        <div class="realtime-grid">
+          <div class="info-box">
+            <span class="info-label">전체 주차면</span>
+            <strong id="maximum-count">-</strong>
+          </div>
+
+          <div class="info-box">
+            <span class="info-label">현재 주차</span>
+            <strong id="parking-count">-</strong>
+          </div>
+
+          <div class="info-box available-box">
+            <span class="info-label">주차 가능</span>
+            <strong id="available-count">-</strong>
+          </div>
+        </div>
+
+        <p id="last-update-time" class="update-time">
+          최종 갱신 시각: -
+        </p>
+      </section>
 
       <div id="pagination" class="pagination">
         <button id="prev-button" type="button">

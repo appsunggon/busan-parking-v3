@@ -10,6 +10,28 @@ const prevButton = document.querySelector("#prev-button");
 const nextButton = document.querySelector("#next-button");
 const pageInfo = document.querySelector("#page-info");
 
+const realtimePanel =
+  document.querySelector("#realtime-panel");
+
+const realtimeName =
+  document.querySelector("#realtime-name");
+
+const maximumCount =
+  document.querySelector("#maximum-count");
+
+const parkingCount =
+  document.querySelector("#parking-count");
+
+const availableCount =
+  document.querySelector("#available-count");
+
+const lastUpdateTime =
+  document.querySelector("#last-update-time");
+
+const closeRealtimeButton =
+  document.querySelector("#close-realtime-button");
+
+
 // 한 페이지에 요청할 주차장 수
 const numOfRows = 10;
 
@@ -19,17 +41,17 @@ let currentPage = 1;
 // 전체 페이지 수
 let totalPages = 1;
 
-// 검색을 위해 불러온 전체 주차장 데이터
+// 검색용 전체 주차장 데이터
 let allParkingData = null;
 
-// 전체 데이터를 불러오는 중복 요청 방지
+// 전체 데이터 중복 요청 방지
 let allParkingLoadingPromise = null;
 
 // 실시간 검색 대기 시간
 let searchTimer;
 
 
-// 검색어와 주차장명을 비교하기 좋은 형태로 변경
+// 검색 문자열 정리
 function normalizeText(text) {
   return String(text || "")
     .toLowerCase()
@@ -37,7 +59,21 @@ function normalizeText(text) {
 }
 
 
-// API에서 특정 페이지 가져오기
+// 숫자를 주차면 형식으로 표시
+function formatParkingCount(value) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return "-";
+  }
+
+  return `${value}면`;
+}
+
+
+// API에서 특정 목록 페이지 가져오기
 async function fetchParkingPage(pageNo) {
   const response = await fetch(
     `/api/parking?pageNo=${pageNo}&numOfRows=${numOfRows}`
@@ -57,7 +93,7 @@ async function fetchParkingPage(pageNo) {
 }
 
 
-// API의 item을 항상 배열로 변환
+// item을 항상 배열로 변환
 function getItems(body) {
   let items = body.items?.item || [];
 
@@ -69,15 +105,23 @@ function getItems(body) {
 }
 
 
+// 실시간 정보창 닫기
+function closeRealtimePanel() {
+  realtimePanel.hidden = true;
+}
+
+
 // 주차장 목록을 표에 출력
 function displayParkingList(items) {
   parkingList.innerHTML = "";
+
+  closeRealtimePanel();
 
   if (items.length === 0) {
     const row = document.createElement("tr");
     const cell = document.createElement("td");
 
-    cell.colSpan = 2;
+    cell.colSpan = 3;
     cell.className = "empty-message";
     cell.textContent = "검색 결과가 없습니다.";
 
@@ -96,8 +140,27 @@ function displayParkingList(items) {
     const nameCell = document.createElement("td");
     nameCell.textContent = parking.parknm;
 
+    const realtimeCell = document.createElement("td");
+
+    const realtimeButton = document.createElement("button");
+
+    realtimeButton.type = "button";
+    realtimeButton.className = "realtime-button";
+    realtimeButton.textContent = "조회";
+
+    realtimeButton.addEventListener("click", () => {
+      loadRealtimeInformation(
+        parking.parkgcd,
+        parking.parknm,
+        realtimeButton
+      );
+    });
+
+    realtimeCell.appendChild(realtimeButton);
+
     row.appendChild(codeCell);
     row.appendChild(nameCell);
+    row.appendChild(realtimeCell);
 
     parkingList.appendChild(row);
   });
@@ -144,14 +207,12 @@ async function loadParkingList(pageNo) {
 }
 
 
-// 전체 데이터를 10개씩 나누어 불러오기
+// 전체 목록을 10개씩 나누어 불러오기
 async function loadAllParkingData() {
-  // 이미 불러온 전체 데이터가 있으면 바로 사용
   if (allParkingData !== null) {
     return allParkingData;
   }
 
-  // 이미 전체 데이터를 불러오는 중이면 같은 작업을 기다림
   if (allParkingLoadingPromise !== null) {
     return allParkingLoadingPromise;
   }
@@ -187,7 +248,7 @@ async function loadAllParkingData() {
 }
 
 
-// 입력한 글자로 시작하는 주차장 검색
+// 앞글자 실시간 검색
 async function searchParking() {
   let keyword = normalizeText(searchInput.value);
 
@@ -206,10 +267,8 @@ async function searchParking() {
   try {
     const parkingData = await loadAllParkingData();
 
-    // 데이터를 불러오는 중 검색어가 바뀔 수 있으므로 다시 확인
     keyword = normalizeText(searchInput.value);
 
-    // 검색어가 지워졌으면 첫 페이지로 돌아가기
     if (keyword === "") {
       loadParkingList(1);
       return;
@@ -218,7 +277,6 @@ async function searchParking() {
     const searchResults = parkingData.filter((parking) => {
       const parkingName = normalizeText(parking.parknm);
 
-      // 입력한 글자로 시작하는 주차장만 검색
       return parkingName.startsWith(keyword);
     });
 
@@ -238,7 +296,80 @@ async function searchParking() {
 }
 
 
-// 검색을 초기화하고 첫 페이지 표시
+// 실시간 주차정보 불러오기
+async function loadRealtimeInformation(
+  parkingCode,
+  parkingName,
+  button
+) {
+  button.disabled = true;
+  button.textContent = "조회 중";
+
+  realtimePanel.hidden = false;
+
+  realtimeName.textContent =
+    `${parkingName} 실시간 정보`;
+
+  maximumCount.textContent = "-";
+  parkingCount.textContent = "-";
+  availableCount.textContent = "-";
+
+  lastUpdateTime.textContent =
+    "실시간 주차정보를 불러오는 중입니다.";
+
+  try {
+    const response = await fetch(
+      `/api/realtime?parkingCode=${encodeURIComponent(parkingCode)}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP 오류: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.response.header.resultCode !== "00") {
+      throw new Error(data.response.header.resultMsg);
+    }
+
+    let item = data.response.body.items?.item;
+
+    if (Array.isArray(item)) {
+      item = item[0];
+    }
+
+    if (!item) {
+      throw new Error("실시간 정보가 없습니다.");
+    }
+
+    realtimeName.textContent =
+      `${item.parknm || parkingName} 실시간 정보`;
+
+    maximumCount.textContent =
+      formatParkingCount(item.maxcnt);
+
+    parkingCount.textContent =
+      formatParkingCount(item.parkingcnt);
+
+    availableCount.textContent =
+      formatParkingCount(item.curravacnt);
+
+    lastUpdateTime.textContent =
+      `최종 갱신 시각: ${item.lastupdatetime || "-"}`;
+  } catch (error) {
+    realtimeName.textContent =
+      `${parkingName} 실시간 정보`;
+
+    lastUpdateTime.textContent =
+      `실시간 정보를 가져오지 못했습니다: ${error.message}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = "조회";
+  }
+}
+
+
+// 검색 초기화
 function resetSearch() {
   searchInput.value = "";
 
@@ -246,11 +377,11 @@ function resetSearch() {
 }
 
 
-// 검색 버튼을 눌렀을 때
+// 검색 버튼
 searchButton.addEventListener("click", searchParking);
 
 
-// Enter 키를 눌렀을 때
+// Enter 키 검색
 searchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     clearTimeout(searchTimer);
@@ -259,7 +390,7 @@ searchInput.addEventListener("keydown", (event) => {
 });
 
 
-// 검색어를 입력하면 0.3초 후 자동 검색
+// 글자를 입력하면 0.3초 후 자동 검색
 searchInput.addEventListener("input", () => {
   clearTimeout(searchTimer);
 
@@ -296,6 +427,13 @@ nextButton.addEventListener("click", () => {
     loadParkingList(currentPage + 1);
   }
 });
+
+
+// 실시간 정보 닫기
+closeRealtimeButton.addEventListener(
+  "click",
+  closeRealtimePanel
+);
 
 
 // 처음에는 1페이지 표시

@@ -50,6 +50,9 @@ let allParkingLoadingPromise = null;
 // 실시간 검색 대기 시간
 let searchTimer;
 
+// 가장 최근에 시작한 실시간 정보 요청 번호
+let realtimeRequestId = 0;
+
 
 // 검색 문자열 정리
 function normalizeText(text) {
@@ -126,6 +129,7 @@ function getItems(body) {
 
 // 실시간 정보창 닫기
 function closeRealtimePanel() {
+  realtimeRequestId += 1;
   realtimePanel.hidden = true;
 }
 
@@ -188,6 +192,8 @@ function displayParkingList(items) {
 
 // 일반 페이지 목록 불러오기
 async function loadParkingList(pageNo) {
+  closeRealtimePanel();
+
   statusMessage.textContent =
     "주차장 정보를 불러오는 중입니다.";
 
@@ -271,6 +277,8 @@ async function loadAllParkingData() {
 async function searchParking() {
   let keyword = normalizeText(searchInput.value);
 
+  closeRealtimePanel();
+
   if (keyword === "") {
     loadParkingList(1);
     return;
@@ -321,6 +329,8 @@ async function loadRealtimeInformation(
   parkingName,
   button
 ) {
+  const requestId = ++realtimeRequestId;
+
   button.disabled = true;
   button.textContent = "조회 중";
 
@@ -346,6 +356,10 @@ async function loadRealtimeInformation(
     }
 
     const data = await response.json();
+
+    if (requestId !== realtimeRequestId) {
+      return;
+    }
 
     if (data.response.header.resultCode !== "00") {
       throw new Error(data.response.header.resultMsg);
@@ -376,6 +390,10 @@ async function loadRealtimeInformation(
     lastUpdateTime.textContent =
       `최종 갱신 시각: ${item.lastupdatetime || "-"}`;
   } catch (error) {
+    if (requestId !== realtimeRequestId) {
+      return;
+    }
+
     realtimeName.textContent =
       `${parkingName} 실시간 정보`;
 

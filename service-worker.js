@@ -1,4 +1,4 @@
-const CACHE_NAME = "busan-parking-v1";
+const CACHE_NAME = "busan-parking-v2";
 
 const APP_SHELL = [
   "/",

@@ -74,22 +74,41 @@ function formatParkingCount(value) {
 
 
 // API에서 특정 목록 페이지 가져오기
-async function fetchParkingPage(pageNo) {
-  const response = await fetch(
-    `/api/parking?pageNo=${pageNo}&numOfRows=${numOfRows}`
-  );
+// 504처럼 일시적인 오류가 발생하면 최대 2번 다시 요청합니다.
+async function fetchParkingPage(pageNo, maxRetries = 2) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(
+        `/api/parking?pageNo=${pageNo}&numOfRows=${numOfRows}`
+      );
 
-  if (!response.ok) {
-    throw new Error(`HTTP 오류: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP 오류: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.response.header.resultCode !== "00") {
+        throw new Error(data.response.header.resultMsg);
+      }
+
+      return data.response.body;
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+
+      const retryDelay = 800 * (attempt + 1);
+
+      statusMessage.textContent =
+        `서버 응답이 늦어 다시 요청하고 있습니다. ` +
+        `(${attempt + 1}/${maxRetries})`;
+
+      await new Promise((resolve) => {
+        setTimeout(resolve, retryDelay);
+      });
+    }
   }
-
-  const data = await response.json();
-
-  if (data.response.header.resultCode !== "00") {
-    throw new Error(data.response.header.resultMsg);
-  }
-
-  return data.response.body;
 }
 
 

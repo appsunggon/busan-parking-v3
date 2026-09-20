@@ -52,12 +52,73 @@ header p {
 
 .card h2 {
   margin-top: 0;
+  margin-bottom: 24px;
 
   color: #0969da;
 }
 
+.search-box {
+  display: flex;
+  gap: 10px;
+
+  margin-bottom: 20px;
+}
+
+.search-box input {
+  flex: 1;
+
+  min-width: 0;
+  padding: 12px 14px;
+
+  font-size: 16px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+}
+
+.search-box input:focus {
+  border-color: #0969da;
+
+  box-shadow:
+    0 0 0 3px rgba(9, 105, 218, 0.15);
+}
+
+.search-box button {
+  padding: 12px 22px;
+
+  font-size: 15px;
+  color: white;
+
+  background-color: #0969da;
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background-color: #075bbd;
+}
+
+.search-box .secondary-button {
+  color: #374151;
+  background-color: #e5e7eb;
+}
+
+.search-box .secondary-button:hover {
+  background-color: #d1d5db;
+}
+
+.search-box button:disabled {
+  color: #9ca3af;
+  background-color: #e5e7eb;
+
+  cursor: not-allowed;
+}
+
 #status-message {
-  margin: 22px 0;
+  margin: 20px 0;
 
   color: #374151;
 }
@@ -94,6 +155,13 @@ tbody tr:hover {
   background-color: #f8fafc;
 }
 
+.empty-message {
+  padding: 40px;
+
+  color: #6b7280;
+  text-align: center;
+}
+
 .pagination {
   display: flex;
   justify-content: center;
@@ -101,6 +169,10 @@ tbody tr:hover {
   gap: 18px;
 
   margin-top: 28px;
+}
+
+.pagination[hidden] {
+  display: none;
 }
 
 .pagination button {
@@ -146,6 +218,18 @@ tbody tr:hover {
 
   .card {
     padding: 24px 18px;
+  }
+
+  .search-box {
+    flex-wrap: wrap;
+  }
+
+  .search-box input {
+    flex-basis: 100%;
+  }
+
+  .search-box button {
+    flex: 1;
   }
 
   th,

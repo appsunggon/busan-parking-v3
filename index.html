@@ -27,6 +27,27 @@
     <section class="card">
       <h2>공영주차장 목록</h2>
 
+      <div class="search-box">
+        <input
+          id="search-input"
+          type="search"
+          placeholder="주차장명을 입력하세요"
+          aria-label="주차장명 검색"
+        >
+
+        <button id="search-button" type="button">
+          검색
+        </button>
+
+        <button
+          id="reset-button"
+          class="secondary-button"
+          type="button"
+        >
+          전체보기
+        </button>
+      </div>
+
       <p id="status-message">
         주차장 정보를 준비하고 있습니다.
       </p>
@@ -46,7 +67,7 @@
         </table>
       </div>
 
-      <div class="pagination">
+      <div id="pagination" class="pagination">
         <button id="prev-button" type="button">
           이전
         </button>

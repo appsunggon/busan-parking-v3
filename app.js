@@ -22,7 +22,22 @@ let totalPages = 1;
 // 검색을 위해 불러온 전체 주차장 데이터
 let allParkingData = null;
 
-// API에서 특정 페이지를 가져오는 함수
+// 전체 데이터를 불러오는 중복 요청 방지
+let allParkingLoadingPromise = null;
+
+// 실시간 검색 대기 시간
+let searchTimer;
+
+
+// 검색어와 주차장명을 비교하기 좋은 형태로 변경
+function normalizeText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/\s+/g, "");
+}
+
+
+// API에서 특정 페이지 가져오기
 async function fetchParkingPage(pageNo) {
   const response = await fetch(
     `/api/parking?pageNo=${pageNo}&numOfRows=${numOfRows}`
@@ -41,7 +56,8 @@ async function fetchParkingPage(pageNo) {
   return data.response.body;
 }
 
-// API의 item을 항상 배열로 바꾸는 함수
+
+// API의 item을 항상 배열로 변환
 function getItems(body) {
   let items = body.items?.item || [];
 
@@ -52,7 +68,8 @@ function getItems(body) {
   return items;
 }
 
-// 주차장 목록을 표에 출력하는 함수
+
+// 주차장 목록을 표에 출력
 function displayParkingList(items) {
   parkingList.innerHTML = "";
 
@@ -85,6 +102,7 @@ function displayParkingList(items) {
     parkingList.appendChild(row);
   });
 }
+
 
 // 일반 페이지 목록 불러오기
 async function loadParkingList(pageNo) {
@@ -125,38 +143,53 @@ async function loadParkingList(pageNo) {
   }
 }
 
-// 전체 50개를 10개씩 나누어 불러오기
+
+// 전체 데이터를 10개씩 나누어 불러오기
 async function loadAllParkingData() {
-  // 이미 전체 데이터를 불러왔다면 다시 호출하지 않음
+  // 이미 불러온 전체 데이터가 있으면 바로 사용
   if (allParkingData !== null) {
     return allParkingData;
   }
 
-  const firstBody = await fetchParkingPage(1);
-  const totalCount = Number(firstBody.totalCount);
-  const pageCount = Math.ceil(totalCount / numOfRows);
-
-  let combinedData = getItems(firstBody);
-
-  for (let page = 2; page <= pageCount; page++) {
-    statusMessage.textContent =
-      `전체 주차장 정보를 불러오는 중입니다. (${page}/${pageCount})`;
-
-    const body = await fetchParkingPage(page);
-    const items = getItems(body);
-
-    combinedData = combinedData.concat(items);
+  // 이미 전체 데이터를 불러오는 중이면 같은 작업을 기다림
+  if (allParkingLoadingPromise !== null) {
+    return allParkingLoadingPromise;
   }
 
-  // 합친 50개를 브라우저에 저장
-  allParkingData = combinedData;
+  allParkingLoadingPromise = (async () => {
+    const firstBody = await fetchParkingPage(1);
 
-  return allParkingData;
+    const totalCount = Number(firstBody.totalCount);
+    const pageCount = Math.ceil(totalCount / numOfRows);
+
+    let combinedData = getItems(firstBody);
+
+    for (let page = 2; page <= pageCount; page++) {
+      statusMessage.textContent =
+        `전체 주차장 정보를 불러오는 중입니다. (${page}/${pageCount})`;
+
+      const body = await fetchParkingPage(page);
+      const items = getItems(body);
+
+      combinedData = combinedData.concat(items);
+    }
+
+    return combinedData;
+  })();
+
+  try {
+    allParkingData = await allParkingLoadingPromise;
+
+    return allParkingData;
+  } finally {
+    allParkingLoadingPromise = null;
+  }
 }
 
-// 주차장 검색
+
+// 입력한 글자로 시작하는 주차장 검색
 async function searchParking() {
-  const keyword = searchInput.value.trim().toLowerCase();
+  let keyword = normalizeText(searchInput.value);
 
   if (keyword === "") {
     loadParkingList(1);
@@ -173,11 +206,20 @@ async function searchParking() {
   try {
     const parkingData = await loadAllParkingData();
 
-    const searchResults = parkingData.filter((parking) => {
-      const parkingName =
-        String(parking.parknm || "").toLowerCase();
+    // 데이터를 불러오는 중 검색어가 바뀔 수 있으므로 다시 확인
+    keyword = normalizeText(searchInput.value);
 
-      return parkingName.includes(keyword);
+    // 검색어가 지워졌으면 첫 페이지로 돌아가기
+    if (keyword === "") {
+      loadParkingList(1);
+      return;
+    }
+
+    const searchResults = parkingData.filter((parking) => {
+      const parkingName = normalizeText(parking.parknm);
+
+      // 입력한 글자로 시작하는 주차장만 검색
+      return parkingName.startsWith(keyword);
     });
 
     displayParkingList(searchResults);
@@ -195,25 +237,50 @@ async function searchParking() {
   }
 }
 
-// 전체보기
+
+// 검색을 초기화하고 첫 페이지 표시
 function resetSearch() {
   searchInput.value = "";
 
   loadParkingList(1);
 }
 
-// 검색 버튼
+
+// 검색 버튼을 눌렀을 때
 searchButton.addEventListener("click", searchParking);
 
-// 입력창에서 Enter 키를 눌러도 검색
+
+// Enter 키를 눌렀을 때
 searchInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
+    clearTimeout(searchTimer);
     searchParking();
   }
 });
 
+
+// 검색어를 입력하면 0.3초 후 자동 검색
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchTimer);
+
+  searchTimer = setTimeout(() => {
+    const keyword = normalizeText(searchInput.value);
+
+    if (keyword === "") {
+      loadParkingList(1);
+    } else {
+      searchParking();
+    }
+  }, 300);
+});
+
+
 // 전체보기 버튼
-resetButton.addEventListener("click", resetSearch);
+resetButton.addEventListener("click", () => {
+  clearTimeout(searchTimer);
+  resetSearch();
+});
+
 
 // 이전 버튼
 prevButton.addEventListener("click", () => {
@@ -222,12 +289,14 @@ prevButton.addEventListener("click", () => {
   }
 });
 
+
 // 다음 버튼
 nextButton.addEventListener("click", () => {
   if (currentPage < totalPages) {
     loadParkingList(currentPage + 1);
   }
 });
+
 
 // 처음에는 1페이지 표시
 loadParkingList(1);

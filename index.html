@@ -31,18 +31,34 @@
         주차장 정보를 준비하고 있습니다.
       </p>
 
-      <table>
-        <thead>
-          <tr>
-            <th>주차장 코드</th>
-            <th>주차장명</th>
-          </tr>
-        </thead>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>주차장 코드</th>
+              <th>주차장명</th>
+            </tr>
+          </thead>
 
-        <tbody id="parking-list">
-          <!-- app.js에서 주차장 목록을 추가합니다. -->
-        </tbody>
-      </table>
+          <tbody id="parking-list">
+            <!-- app.js에서 목록을 추가합니다. -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination">
+        <button id="prev-button" type="button">
+          이전
+        </button>
+
+        <span id="page-info">
+          1 / 1
+        </span>
+
+        <button id="next-button" type="button">
+          다음
+        </button>
+      </div>
     </section>
 
   </main>

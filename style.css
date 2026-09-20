@@ -4,38 +4,157 @@
 
 body {
   margin: 0;
-  font-family: Arial, "Noto Sans KR", sans-serif;
-  background-color: #f4f6f8;
-  color: #222;
+  padding: 0;
+
+  font-family:
+    Arial,
+    "Noto Sans KR",
+    sans-serif;
+
+  color: #1f2937;
+  background-color: #f3f4f6;
 }
 
 .container {
-  width: min(900px, 90%);
-  margin: 80px auto;
+  width: 90%;
+  max-width: 900px;
+
+  margin: 40px auto;
 }
 
 header {
   margin-bottom: 30px;
 }
 
-h1 {
-  margin-bottom: 10px;
+header h1 {
+  margin-bottom: 12px;
+
   font-size: 36px;
+  color: #111827;
 }
 
 header p {
-  color: #666;
+  margin: 0;
+
   font-size: 17px;
+  color: #6b7280;
 }
 
 .card {
   padding: 40px;
+
   background-color: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .card h2 {
   margin-top: 0;
-  color: #1267e5;
+
+  color: #0969da;
+}
+
+#status-message {
+  margin: 22px 0;
+
+  color: #374151;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 14px 16px;
+
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+th:first-child,
+td:first-child {
+  width: 180px;
+}
+
+tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+
+  margin-top: 28px;
+}
+
+.pagination button {
+  padding: 10px 22px;
+
+  font-size: 15px;
+  color: white;
+
+  background-color: #0969da;
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.pagination button:hover {
+  background-color: #075bbd;
+}
+
+.pagination button:disabled {
+  color: #9ca3af;
+
+  background-color: #e5e7eb;
+  cursor: not-allowed;
+}
+
+#page-info {
+  min-width: 60px;
+
+  font-weight: bold;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .container {
+    width: 94%;
+    margin: 20px auto;
+  }
+
+  header h1 {
+    font-size: 28px;
+  }
+
+  .card {
+    padding: 24px 18px;
+  }
+
+  th,
+  td {
+    padding: 12px 10px;
+  }
+
+  th:first-child,
+  td:first-child {
+    width: 120px;
+  }
 }
